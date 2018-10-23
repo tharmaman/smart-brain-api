@@ -1,13 +1,46 @@
-# docker-compose up smart-brain-api
+# this file we want the backend api, redis & postgres
 
+# docker-compose up smart-brain-api
 version: '3.7'
 
+# docker-compose down to bring down any containers
+
+# docker-compose up -d will make it run in the background
+# docker-compose up --build
+# docker-compose up brings up all the services we have listed
+
 services:
+
+  ####### BACKEND API #######
   smart-brain-api:
     container_name: backend
     # image: node:8.11.1 - we build image from dockerfile
     build: ./
     command: yarn start
     working_dir: /usr/src/smart-brain-api
+    environment:
+      POSTGRES_URI: postgres://sally:secret@postgres:5432/smart-brain-docker
+      # POSTGRES_USER: sally
+      # POSTGRES_PASSWORD: secret
+      # POSTGRES_DB: smart-brain-docker
+      # POSTGRES_HOST: postgres
     ports:
       - "3000:3000"
+    # maps changes to the container
+    # listens to changes
+    volumes:
+      - ./:/usr/src/smart-brain-api
+    
+  ####### BACKEND API #######
+  # access from command line
+  # postgres://sally:secret@localhost:5432/smart-brain-docker
+  postgres:
+    environment:
+      POSTGRES_USER: sally
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: smart-brain-docker
+      POSTGRES_HOST: postgres
+    # image: postgres
+    build: ./postgres
+    ports:
+      - "5432:5432"
