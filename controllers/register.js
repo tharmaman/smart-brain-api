@@ -1,6 +1,6 @@
-const jwt = require('jsonwebtoken');
-const redisClient = require('./signin').redisClient;
-const tokenExpiry = 60 * 60 * 24; // expires after a day
+const middleware = require('./middleware');
+// const redisClient = require('./signin').redisClient;
+// const tokenExpiry = 60 * 60 * 24; // expires after a day
 
 const handleRegister = (req, res, db, bcrypt) => {
     const { email, name, password } = req.body;
@@ -34,33 +34,12 @@ const handleRegister = (req, res, db, bcrypt) => {
         .catch(err => Promise.reject('unable to register'));
 };
 
-const createSession = user => {
-    // JWT token, return user data
-    const { email, id } = user;
-    const token = signToken(email);
-    return setToken(token, id)
-        .then(() => ({ success: 'true', user, token }))
-        .catch(err => console.log(err));
-};
-
-const signToken = email => {
-    const jwtPayload = { email };
-    return jwt.sign({ jwtPayload }, process.env.JWT_SECRET, {
-        expiresIn: tokenExpiry
-    });
-};
-
-const setToken = async (key, value) => {
-  await redisClient.set(key, value);
-  return Promise.resolve(redisClient.expire(key, tokenExpiry));
-};
-
 const registerAuthentication = (db, bcrypt) => (req, res) => {
     return handleRegister(req, res, db, bcrypt)
         .then(
             data =>
                 data.id && data.email
-                    ? createSession(data)
+                    ? middleware.createSession(data)
                     : Promise.reject(data)
         )
         .then(session => res.json(session))
@@ -68,5 +47,5 @@ const registerAuthentication = (db, bcrypt) => (req, res) => {
 };
 
 module.exports = {
-    registerAuthentication,
+    registerAuthentication
 };
