@@ -1,11 +1,13 @@
 BEGIN TRANSACTION;
 
 CREATE TABLE users (
-    id serial PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     name VARCHAR(100),
-    email text UNIQUE NOT NULL,
+    email TEXT UNIQUE NOT NULL,
     entries BIGINT DEFAULT 0,
-    joined TIMESTAMP NOT NULL
+    joined TIMESTAMP NOT NULL,
+    pet VARCHAR(100),
+    age SMALLINT DEFAULT 18
 );
 
 COMMIT;
