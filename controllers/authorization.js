@@ -1,6 +1,7 @@
 const redisClient = require('./signin').redisClient;
 
 const requireAuth = (req, res, next) => {
+    console.log(req.headers);
     const { authorization } = req.headers;
     if (!authorization){
         console.log('you shall not pass');
@@ -12,7 +13,7 @@ const requireAuth = (req, res, next) => {
             return res.status(401).json('Unauthorized'); 
         }
         console.log('you shall pass');
-        return next()
+        return next();
     })
 }
 

@@ -11,6 +11,7 @@ const signin = require('./controllers/signin');
 const profile = require('./controllers/profile');
 const image = require('./controllers/image');
 const auth = require('./controllers/authorization');
+const logout = require('./controllers/logout');
 
 const db = knex({
     client: 'pg',
@@ -32,14 +33,15 @@ app.get('/', (req, res) => {
     res.send('ITS WORKING');
 });
 app.post('/signin', signin.signinAuthentication(db, bcrypt));
-app.post('/register', (req, res) => {
-    register.handleRegister(req, res, db, bcrypt);
-});
+app.post('/register', register.registerAuthentication(db, bcrypt));
 
 // GUARD THESE ENDPOINTS
 app.get('/profile/:id', auth.requireAuth, (req, res) => {
     profile.handleProfileGet(req, res, db);
 });
+app.get('/logout/:id', auth.requireAuth, (req, res) => {
+    logout.handleSignout(req, res, db);
+})
 app.post('/profile/:id', auth.requireAuth, (req, res) => {
     profile.handleProfileUpdate(req, res, db)
 });
