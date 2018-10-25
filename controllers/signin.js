@@ -1,6 +1,5 @@
-const jwt = require('jsonwebtoken');
 const redis = require('redis');
-const tokenExpiry = 60 * 60 * 24; // expires after a day
+const middleware = require('./middleware');
 
 // setup redis
 const redisClient = redis.createClient(process.env.REDIS_URI);
@@ -29,6 +28,7 @@ const handleSignin = (db, bcrypt, req, res) => {
         })
         .catch(err => Promise.reject('wrong credentials'));
 };
+
 const getAuthTokenId = (req, res, next) => {
     const { authorization } = req.headers;
     redisClient.get(authorization, (err, reply) => {
@@ -37,29 +37,6 @@ const getAuthTokenId = (req, res, next) => {
         }
         return res.json({ id: reply });
     });
-};
-
-const signToken = email => {
-    const jwtPayload = { email };
-    return jwt.sign({ jwtPayload }, process.env.JWT_SECRET, {
-        expiresIn: tokenExpiry
-    });
-};
-
-const setToken = async (key, value) => {
-    await redisClient.set(key, value);
-    return Promise.resolve(redisClient.expire(key, tokenExpiry));
-};
-
-const createSession = user => {
-    // JWT token, return user data
-    console.log('inside create session');
-    const { email, id } = user;
-    const token = signToken(email);
-    console.log('email', token);
-    return setToken(token, id)
-        .then(() => ({ success: 'true', userId: id, token }))
-        .catch(err => console.log(err));
 };
 
 const signinAuthentication = (db, bcrypt) => (req, res) => {
@@ -71,7 +48,7 @@ const signinAuthentication = (db, bcrypt) => (req, res) => {
               .then(
                   data =>
                       data.id && data.email
-                          ? createSession(data)
+                          ? middleware.createSession(data)
                           : Promise.reject(data)
               )
               .then(session => res.json(session))
